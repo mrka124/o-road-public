@@ -1,1 +1,975 @@
-Hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crossroad Chaos - Control the Traffic Chaos | iOS Game</title>
+  
+  <meta name="description" content="Crossroad Chaos is an immersive real-time traffic management game featuring a gorgeous 2D isometric low-poly art style. Control lights, prevent gridlocks, and guide emergency vehicles!">
+  <meta name="keywords" content="crossroad chaos, traffic game, low poly, isometric, godot game, ios game, traffic management">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Crossroad Chaos - Control the Traffic Chaos">
+  <meta property="og:description" content="Become a professional traffic coordinator in this premium 2D isometric low-poly simulation game for iOS.">
+  <meta property="og:image" content="store_photos/store_1.jpeg">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Design Tokens & CSS Variables */
+    :root {
+      /* Theme Day (Default) */
+      --bg-primary: #f8fafc;
+      --bg-secondary: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --accent-color: #6366f1;
+      --accent-hover: #4f46e5;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --card-border: rgba(15, 23, 42, 0.08);
+      --glow-color: rgba(99, 102, 241, 0.15);
+    }
+
+    [data-theme="night"] {
+      /* Theme Night */
+      --bg-primary: #090d16;
+      --bg-secondary: #0f172a;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent-color: #818cf8;
+      --accent-hover: #6366f1;
+      --card-bg: rgba(15, 23, 42, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --glow-color: rgba(129, 140, 248, 0.25);
+    }
+
+    /* Reset Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      line-height: 1.6;
+      transition: background-color 0.5s ease, color 0.5s ease;
+      position: relative;
+    }
+
+    h1, h2, h3, .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Glassmorphic Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      z-index: 1000;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 5%;
+      transition: background 0.5s ease, border 0.5s ease;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px var(--glow-color);
+      object-fit: cover;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--accent-color), #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.95rem;
+      font-weight: 600;
+      position: relative;
+      padding: 5px 0;
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--accent-color);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+      background-color: var(--bg-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.1);
+      border-color: var(--accent-color);
+    }
+
+    .btn-play-header {
+      background: linear-gradient(135deg, var(--accent-color), #4f46e5);
+      color: white !important;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 700 !important;
+      box-shadow: 0 4px 12px var(--glow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    }
+
+    .btn-play-header:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px var(--glow-color);
+    }
+
+    .btn-play-header::after {
+      display: none !important;
+    }
+
+    /* Centered Hero Section */
+    .hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 140px 5% 80px 5%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .game-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--glow-color);
+      border: 1px solid var(--card-border);
+      color: var(--accent-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+      font-size: 1.35rem;
+      color: var(--text-secondary);
+      margin-bottom: 35px;
+      font-weight: 400;
+      max-width: 650px;
+    }
+
+    .hero-cta {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-color), #4f46e5);
+      color: white;
+      box-shadow: 0 10px 25px var(--glow-color);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px var(--glow-color);
+    }
+
+    /* Floating Low-Poly Background Elements */
+    .floating-bg {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.08));
+      animation: float-bob 6s ease-in-out infinite;
+      user-select: none;
+    }
+    
+    .floating-bg.balloon {
+      left: 6%;
+      top: 15%;
+      width: 130px;
+      animation-duration: 8s;
+    }
+    
+    .floating-bg.cloud-l {
+      left: 4%;
+      top: 45%;
+      width: 160px;
+      animation-duration: 11s;
+      opacity: 0.65;
+    }
+    
+    .floating-bg.cloud-r {
+      right: 5%;
+      top: 10%;
+      width: 170px;
+      animation-duration: 10s;
+      opacity: 0.65;
+    }
+    
+    .floating-bg.airplane {
+      right: 7%;
+      top: 42%;
+      width: 150px;
+      animation-duration: 7s;
+    }
+    
+    .floating-bg.helicopter {
+      left: 5%;
+      top: 65%;
+      width: 120px;
+      animation-duration: 6s;
+    }
+    
+    .floating-bg.birds {
+      right: 6%;
+      top: 68%;
+      width: 100px;
+      animation-duration: 9s;
+    }
+    
+    @keyframes float-bob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(2deg); }
+    }
+
+    /* Sections Shared Styles */
+    section {
+      padding: 90px 5%;
+      position: relative;
+    }
+
+    .section-title-wrapper {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-subtitle {
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      color: var(--text-primary);
+    }
+
+    /* Feature Grid Section */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-color);
+      box-shadow: 0 15px 35px var(--glow-color);
+    }
+
+    .feature-icon-wrapper {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      background: var(--glow-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-color);
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .feature-details {
+      margin-top: 10px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    .detail-item span.label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .detail-item span.value {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    /* Showcase Screenshot Gallery */
+    .gallery-carousel-wrapper {
+      position: relative;
+      max-width: 1000px;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--card-border);
+      z-index: 2;
+    }
+
+    .gallery-carousel {
+      display: flex;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      position: relative;
+      aspect-ratio: 16/9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .carousel-slide img {
+      position: absolute;
+      width: 56.25%; /* H when slide width is W */
+      height: 177.78%; /* W when slide height is H */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .carousel-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 40px 5%;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 5;
+    }
+
+    .carousel-title {
+      font-size: 1.5rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .carousel-desc {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+    }
+
+    .carousel-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    .carousel-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .carousel-nav-btn.prev { left: 20px; }
+    .carousel-nav-btn.next { right: 20px; }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--card-border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .carousel-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background-color: var(--accent-color);
+    }
+
+    /* Footer Styles */
+    footer {
+      background-color: var(--bg-secondary);
+      border-top: 1px solid var(--card-border);
+      padding: 60px 5% 40px 5%;
+      transition: background-color 0.5s ease, border-top 0.5s ease;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 40px;
+      margin-bottom: 40px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-brand {
+      flex: 2;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .footer-brand p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .footer-links-group {
+      flex: 1;
+      min-width: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .footer-links-group h4 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .footer-links-group ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-links-group a {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links-group a:hover {
+      color: var(--accent-color);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--card-border);
+      padding-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 15px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2.8rem;
+      }
+      .nav-links {
+        display: none;
+      }
+      .floating-bg {
+        display: none; /* Hide floating elements on mobile for clean screen spacing */
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="logo-container">
+      <img src="icon_1024.png" class="logo-icon" alt="Crossroad Chaos Logo">
+      <span class="logo-text">CROSSROAD CHAOS</span>
+    </div>
+    
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <button class="theme-toggle-btn" id="theme-btn" title="Toggle Day/Night Mode">
+        <!-- Sun icon -->
+        <svg id="sun-icon" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <!-- Moon icon -->
+        <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+      <a href="https://apps.apple.com/us/app/crossroad-chaos/id6762072095" target="_blank" rel="noopener noreferrer" class="btn-play-header">Download</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <!-- Floating Low-Poly Weather / Sky Elements -->
+    <img src="assets/weather/balloon_lowpoly.png" class="floating-bg balloon" alt="Floating Balloon">
+    <img src="assets/weather/cloud_lowpoly.png" class="floating-bg cloud-l" alt="Floating Cloud Left">
+    <img src="assets/weather/cloud_lowpoly.png" class="floating-bg cloud-r" alt="Floating Cloud Right">
+    <img src="assets/weather/airplane_lowpoly_red.png" class="floating-bg airplane" alt="Floating Airplane">
+
+    <div class="hero-content">
+      <div class="game-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Now Available on iOS
+      </div>
+      <h1 class="hero-title">Order in Chaos</h1>
+      <p class="hero-tagline">
+        A bustling intersection, weaving vehicles, and you are the only coordinator holding the line. Keep the traffic flowing safely!
+      </p>
+      
+      <div class="hero-cta">
+        <a href="https://apps.apple.com/us/app/crossroad-chaos/id6762072095" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71,19.5C17.88,20.74,17,21.95,15.66,22c-1.34,.05-1.77-.77-3.29-.77-1.53,0-2,.75-3.27,.8-1.31,.05-2.3-1.32-3.14-2.53C4.25,17,2.94,12.45,4.7,9.39c.87-1.52,2.43-2.48,4.12-2.51,1.28-.02,2.5,.87,3.29,.87,.78,0,2.26-1.07,3.81-.91,1.66,.07,3.02,.72,3.92,1.84a6.79,6.79,0,0,0-3.32,5.76c.02,4,3.25,5.34,3.28,5.35ZM15.8,5.17A5.23,5.23,0,0,0,17.16,1.4a5.27,5.27,0,0,0-3.53,1.83,5.08,5.08,0,0,0-1.42,3.67,4.35,4.35,0,0,0,3.59-1.73Z"/></svg>
+          Download on the App Store
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid Section -->
+  <section class="features" id="features">
+    <!-- Floating Low-Poly Weather Elements -->
+    <img src="assets/weather/helicopter_lowpoly.png" class="floating-bg helicopter" alt="Floating Helicopter">
+    <img src="assets/weather/birds_lowpoly.png" class="floating-bg birds" alt="Flock of Birds">
+
+    <div class="section-title-wrapper">
+      <span class="section-subtitle">Stunning Experience</span>
+      <h2 class="section-title">Core Gameplay Mechanics</h2>
+    </div>
+
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <!-- Shield/Police Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Vehicles & Priorities</h3>
+        <p>Manage three distinct tiers of traffic, each with unique travel velocities, warning sirens, and paths to test your scheduling timing.</p>
+        
+        <div class="feature-details">
+          <div class="detail-item">
+            <span class="label">Civilian Vehicles</span>
+            <span class="value">Cars, Taxis, Trucks...</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Priority Vehicles</span>
+            <span class="value">Ambulance & Police (Siren warning)</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">VIP Escort Convoy</span>
+            <span class="value">Strict Police - Limo convoy alignments</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <!-- Alert Triangle Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+        </div>
+        <h3>Collisions & Penalties</h3>
+        <p>Accidents disrupt operations immediately. Drivers waiting too long at red signals lose patience, shaking their cars before points drain away.</p>
+        
+        <div class="feature-details">
+          <div class="detail-item">
+            <span class="label">Collision Limits</span>
+            <span class="value">Max 3 lives (Crash Count limit)</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Stun Cooldown</span>
+            <span class="value">1.5 - 2.5s delay recovery post-crash</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Impatient Shake</span>
+            <span class="value">Vibrations trigger if waiting > 2 cycles</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <!-- Cloud Drizzle Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 19c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3c.4 0 .76.08 1.1.22a6 6 0 0 1 11.8-2.22A4.5 4.5 0 0 1 22 18.5c0 2.49-2.01 4.5-4.5 4.5a4.5 4.5 0 0 1-3.5-1.63M16 13v6M8 13v6M12 15v6"/></svg>
+        </div>
+        <h3>Dynamic Environments</h3>
+        <p>Adapt to shift-based Day/Night lighting and severe weather cycles. Road friction conditions actively adjust vehicle handling and transit speeds.</p>
+        
+        <div class="feature-details">
+          <div class="detail-item">
+            <span class="label">Rain Conditions</span>
+            <span class="value">-25% speed drops, tire spray effects</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Snow Conditions</span>
+            <span class="value">-20% to -35% speeds, drifting snow flurries</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Day & Night Cycles</span>
+            <span class="value">Auto headlights, glowing light beacons</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots Gallery Section -->
+  <section class="gallery" id="gallery">
+    <div class="section-title-wrapper">
+      <span class="section-subtitle">Screenshot Gallery</span>
+      <h2 class="section-title">In-Game Action Screenshots</h2>
+    </div>
+
+    <div class="gallery-carousel-wrapper">
+      <button class="carousel-nav-btn prev" onclick="moveCarousel(-1)">&lt;</button>
+      <button class="carousel-nav-btn next" onclick="moveCarousel(1)">&gt;</button>
+      
+      <div class="gallery-carousel" id="carousel-track">
+        <!-- Slide 1 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_1.jpeg" alt="Crossroad Chaos Gameplay Screen 1">
+          <div class="carousel-overlay">
+            <span class="carousel-title">Bustling Intersection Flows</span>
+            <span class="carousel-desc">Coordinate civilian vehicle lines seamlessly with styled isometric 3D perspectives.</span>
+          </div>
+        </div>
+        <!-- Slide 2 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_2.jpeg" alt="Crossroad Chaos Gameplay Screen 2">
+          <div class="carousel-overlay">
+            <span class="carousel-title">Dynamic Day/Night Lighting</span>
+            <span class="carousel-desc">Vehicles automatically engage headlights at dusk alongside glowing neon light stems.</span>
+          </div>
+        </div>
+        <!-- Slide 3 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_3.jpeg" alt="Crossroad Chaos Gameplay Screen 3">
+          <div class="carousel-overlay">
+            <span class="carousel-title">Rainy Climate Interruptions</span>
+            <span class="carousel-desc">Wet asphalt degrades traction speed by 25% with realistic spray details.</span>
+          </div>
+        </div>
+        <!-- Slide 4 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_4.jpeg" alt="Crossroad Chaos Gameplay Screen 4">
+          <div class="carousel-overlay">
+            <span class="carousel-title">Emergency Signals Active</span>
+            <span class="carousel-desc">Flashing alert bars warn you to clear paths ahead of emergency priority lanes.</span>
+          </div>
+        </div>
+        <!-- Slide 5 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_5.jpeg" alt="Crossroad Chaos Gameplay Screen 5">
+          <div class="carousel-overlay">
+            <span class="carousel-title">VIP Protection Routes</span>
+            <span class="carousel-desc">Shield the escorted VIP limousine convoys from civilian vehicle cut-in penalties.</span>
+          </div>
+        </div>
+        <!-- Slide 6 -->
+        <div class="carousel-slide">
+          <img src="store_photos/store_6.jpeg" alt="Crossroad Chaos Gameplay Screen 6">
+          <div class="carousel-overlay">
+            <span class="carousel-title">Customizable Config Details</span>
+            <span class="carousel-desc">Tweak crash values, waiting thresholds, and weather factors in resource structures.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-dots" id="carousel-dots-container"></div>
+    </div>
+  </section>
+
+  <!-- Download Call-to-action Section -->
+  <section class="download-section" id="download" style="text-align: center; background-color: var(--bg-secondary); border-top: 1px solid var(--card-border); padding: 100px 5%;">
+    <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; align-items: center;">
+      <h2 style="font-size: 2.5rem; font-family: 'Orbitron';">READY FOR THE CHAOS?</h2>
+      <p style="color: var(--text-secondary); font-size: 1.1rem;">
+        Get Crossroad Chaos on your Apple device today and test your reflexes under pressure.
+      </p>
+      
+      <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
+        <a href="https://apps.apple.com/us/app/crossroad-chaos/id6762072095" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 16px 36px; border-radius: 40px; font-size: 1.1rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="margin-right:5px;"><path d="M18.71,19.5C17.88,20.74,17,21.95,15.66,22c-1.34,.05-1.77-.77-3.29-.77-1.53,0-2,.75-3.27,.8-1.31,.05-2.3-1.32-3.14-2.53C4.25,17,2.94,12.45,4.7,9.39c.87-1.52,2.43-2.48,4.12-2.51,1.28-.02,2.5,.87,3.29,.87,.78,0,2.26-1.07,3.81-.91,1.66,.07,3.02,.72,3.92,1.84a6.79,6.79,0,0,0-3.32,5.76c.02,4,3.25,5.34,3.28,5.35ZM15.8,5.17A5.23,5.23,0,0,0,17.16,1.4a5.27,5.27,0,0,0-3.53,1.83,5.08,5.08,0,0,0-1.42,3.67,4.35,4.35,0,0,0,3.59-1.73Z"/></svg>
+          Download on the App Store
+        </a>
+      </div>
+      
+      <span style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 10px;">
+        *Supports iOS 15.0 or later. Optimized for iPhone and iPad.
+      </span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-container">
+          <img src="icon_1024.png" class="logo-icon" alt="Crossroad Chaos Logo">
+          <span class="logo-text">CROSSROAD CHAOS</span>
+        </div>
+        <p>A premium real-time traffic coordination and simulation puzzle game built using the Godot Engine.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <h4>Game</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#gallery">Screenshot Gallery</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; 2026 GGme Studio. All rights reserved.</div>
+      <div>
+        <a href="#" style="margin-right: 15px; text-decoration: underline;">Terms of Service</a>
+        <a href="#" style="text-decoration: underline;">Privacy Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Page Logic -->
+  <script>
+    // Theme Mode Toggle
+    let themeMode = 'dark';
+    const themeBtn = document.getElementById('theme-btn');
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.body.setAttribute('data-theme', themeMode);
+      buildCarouselDots();
+    });
+
+    themeBtn.addEventListener('click', () => {
+      themeMode = themeMode === 'dark' ? 'day' : 'night';
+      document.body.setAttribute('data-theme', themeMode);
+      if (themeMode === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      }
+    });
+
+    // Carousel Logic
+    let currentSlide = 0;
+    const totalSlides = 6;
+    const carouselTrack = document.getElementById('carousel-track');
+    
+    function buildCarouselDots() {
+      const dotsContainer = document.getElementById('carousel-dots-container');
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = `carousel-dot ${i === 0 ? 'active' : ''}`;
+        dot.onclick = () => jumpToSlide(i);
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    function moveCarousel(direction) {
+      currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+      updateCarouselDOM();
+    }
+
+    function jumpToSlide(index) {
+      currentSlide = index;
+      updateCarouselDOM();
+    }
+
+    function updateCarouselDOM() {
+      carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+      
+      // Update dots
+      const dots = document.querySelectorAll('.carousel-dot');
+      dots.forEach((dot, idx) => {
+        if (idx === currentSlide) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
